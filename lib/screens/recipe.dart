@@ -5,7 +5,7 @@ class Recipe extends StatefulWidget {
   const Recipe({Key? key}) : super(key: key);
 
   @override
-  _RecipeState createState() => _RecipeState();
+  State<Recipe> createState() => _RecipeState();
 }
 
 class _RecipeState extends State<Recipe> {
@@ -13,7 +13,7 @@ class _RecipeState extends State<Recipe> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('食譜清單'),
+        title: const Text('美味食譜'),
       ),
       body: RecipeList(),
     );
@@ -89,9 +89,12 @@ class RecipeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 4.0,
+      margin: EdgeInsets.all(8.0),
       child: InkWell(
         onTap: onPressed,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.asset(
               imagePath,
@@ -103,12 +106,73 @@ class RecipeCard extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 recipeName,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class RecipeSearch extends SearchDelegate<String> {
+  final List<Map<String, dynamic>> recipes;
+
+  RecipeSearch(this.recipes);
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, '');
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    // TODO: Implement search results UI
+    return Container();
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final suggestionList = query.isEmpty
+        ? []
+        : recipes.where((recipe) {
+            return recipe['recipeName']
+                .toLowerCase()
+                .contains(query.toLowerCase());
+          }).toList();
+
+    return ListView.builder(
+      itemCount: suggestionList.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(
+            suggestionList[index]['recipeName'],
+            style: TextStyle(fontSize: 16),
+          ),
+          onTap: () {
+            query = suggestionList[index]['recipeName'];
+            // TODO: Handle tapping on a search suggestion
+          },
+        );
+      },
     );
   }
 }

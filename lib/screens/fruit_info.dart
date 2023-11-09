@@ -5,7 +5,6 @@ class FruitInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 使用 List<Map> 來表示水果資訊
     List<Map<String, dynamic>> fruits = [
       {
         'id': 1,
@@ -25,7 +24,7 @@ class FruitInfo extends StatelessWidget {
         'name': '葡萄',
         'description': '葡萄是一種天然的抗氧化劑。',
       },
-      // 添加更多水果資訊
+      // Add more fruit information
     ];
 
     return Scaffold(
@@ -61,12 +60,27 @@ class FruitInfoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text('$name'),
-      onTap: () {
-        _showFruitDetails(context);
-      },
+    return Card(
+      elevation: 4.0,
+      margin: EdgeInsets.symmetric(vertical: 8.0),
+      child: ListTile(
+        leading: Icon(
+          icon,
+          size: 36.0,
+          color: Colors.orange, // Change the icon color as needed
+        ),
+        title: Text(
+          '$name',
+          style: TextStyle(
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        onTap: () {
+          _showFruitDetails(context);
+        },
+      ),
     );
   }
 
@@ -76,13 +90,22 @@ class FruitInfoItem extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('$name (ID: $id)'),
-          content: Text(description),
+          content: Text(
+            description,
+            style: TextStyle(fontSize: 16.0),
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('關閉'),
+              child: Text(
+                '關閉',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.blue, // Change the button color as needed
+                ),
+              ),
             ),
           ],
         );
