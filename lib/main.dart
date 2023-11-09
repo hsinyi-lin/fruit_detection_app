@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'screens/recipe.dart';
 import 'screens/fruit_info.dart';
+import 'screens/fruit_capture.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -57,6 +59,17 @@ class _MyAppHomeState extends State<MyAppHome> {
                 setState(() {
                   _appBarTitle = '水果資訊';  // 更新 AppBar 標題
                   _currentBody = const FruitInfo();
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),  // 水果拍攝的 icon
+              title: const Text('水果拍攝'),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() {
+                  _appBarTitle = '水果拍攝';
+                  _currentBody = const FruitCapture();
                 });
               },
             ),
