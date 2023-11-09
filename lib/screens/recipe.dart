@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'recipe_detail.dart';
 
 class Recipe extends StatefulWidget {
   const Recipe({Key? key}) : super(key: key);
@@ -31,8 +32,8 @@ class RecipeList extends StatelessWidget {
   final List<String> recipeNames = [
     '美味食譜1',
     '美味食譜2',
-    '美味食譜1',
-    '美味食譜2',
+    '美味食譜3',
+    '美味食譜4',
     // Add more recipe names as needed
   ];
 
@@ -44,6 +45,17 @@ class RecipeList extends StatelessWidget {
         return RecipeCard(
           imagePath: recipeImages[index],
           recipeName: recipeNames[index],
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RecipeDetailScreen(
+                  imagePath: recipeImages[index],
+                  recipeName: recipeNames[index],
+                ),
+              ),
+            );
+          },
         );
       },
     );
@@ -53,28 +65,36 @@ class RecipeList extends StatelessWidget {
 class RecipeCard extends StatelessWidget {
   final String imagePath;
   final String recipeName;
+  final VoidCallback onPressed;
 
-  RecipeCard({required this.imagePath, required this.recipeName});
+  RecipeCard({
+    required this.imagePath,
+    required this.recipeName,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Column(
-        children: [
-          Image.asset(
-            imagePath,
-            height: 150,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              recipeName,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      child: InkWell(
+        onTap: onPressed,
+        child: Column(
+          children: [
+            Image.asset(
+              imagePath,
+              height: 150,
+              width: double.infinity,
+              fit: BoxFit.cover,
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                recipeName,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
