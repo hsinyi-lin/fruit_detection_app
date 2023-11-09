@@ -21,37 +21,48 @@ class _RecipeState extends State<Recipe> {
 }
 
 class RecipeList extends StatelessWidget {
-  final List<String> recipeImages = [
-    'assets/images/recipe1.jpg',
-    'assets/images/recipe2.jpg',
-    'assets/images/recipe1.jpg',
-    'assets/images/recipe2.jpg',
-    // Add more image paths as needed
-  ];
-
-  final List<String> recipeNames = [
-    '美味食譜1',
-    '美味食譜2',
-    '美味食譜3',
-    '美味食譜4',
-    // Add more recipe names as needed
+  final List<Map<String, dynamic>> recipes = [
+    {
+      'id': 1,
+      'imagePath': 'assets/images/recipe1.jpg',
+      'recipeName': '美味食譜1',
+    },
+    {
+      'id': 2,
+      'imagePath': 'assets/images/recipe2.jpg',
+      'recipeName': '美味食譜2',
+    },
+    {
+      'id': 3,
+      'imagePath': 'assets/images/recipe1.jpg',
+      'recipeName': '美味食譜3',
+    },
+    {
+      'id': 4,
+      'imagePath': 'assets/images/recipe2.jpg',
+      'recipeName': '美味食譜4',
+    },
+    // Add more recipe data as needed
   ];
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: recipeImages.length,
+      itemCount: recipes.length,
       itemBuilder: (context, index) {
+        final recipe = recipes[index];
         return RecipeCard(
-          imagePath: recipeImages[index],
-          recipeName: recipeNames[index],
+          id: recipe['id']!,
+          imagePath: recipe['imagePath']!,
+          recipeName: recipe['recipeName']!,
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => RecipeDetailScreen(
-                  imagePath: recipeImages[index],
-                  recipeName: recipeNames[index],
+                  id: recipe['id']!,
+                  imagePath: recipe['imagePath']!,
+                  recipeName: recipe['recipeName']!,
                 ),
               ),
             );
@@ -63,11 +74,13 @@ class RecipeList extends StatelessWidget {
 }
 
 class RecipeCard extends StatelessWidget {
+  final int id;
   final String imagePath;
   final String recipeName;
   final VoidCallback onPressed;
 
   RecipeCard({
+    required this.id,
     required this.imagePath,
     required this.recipeName,
     required this.onPressed,
