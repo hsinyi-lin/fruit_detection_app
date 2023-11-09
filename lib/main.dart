@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/recipe.dart';
 import 'screens/fruit_info.dart';
 import 'screens/fruit_capture.dart';
+import 'screens/recipe_community.dart';
 
 
 void main() {
@@ -70,6 +71,17 @@ class _MyAppHomeState extends State<MyAppHome> {
                 setState(() {
                   _appBarTitle = '水果拍攝';
                   _currentBody = const FruitCapture();
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.group),  // 食譜社群的 icon
+              title: const Text('食譜社群'),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() {
+                  _appBarTitle = '食譜社群';
+                  _currentBody = const RecipeCommunity();
                 });
               },
             ),
