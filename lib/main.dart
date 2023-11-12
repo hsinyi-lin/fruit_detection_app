@@ -10,7 +10,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +28,8 @@ class MyAppHome extends StatefulWidget {
 }
 
 class _MyAppHomeState extends State<MyAppHome> {
-  String _appBarTitle = '食譜清單';  // 新增這行
-  Widget _currentBody = RecipeList();
+  String _appBarTitle = '食譜清單'; 
+  late Widget _currentBody = const RecipeList();
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +47,8 @@ class _MyAppHomeState extends State<MyAppHome> {
               onTap: () {
                 Navigator.pop(context);
                 setState(() {
-                  _appBarTitle = '食譜清單';  // 更新 AppBar 標題
-                  _currentBody = RecipeList();
+                  _appBarTitle = '食譜清單'; 
+                  _currentBody = const RecipeList();
                 });
               },
             ),
@@ -58,13 +58,13 @@ class _MyAppHomeState extends State<MyAppHome> {
               onTap: () {
                 Navigator.pop(context);
                 setState(() {
-                  _appBarTitle = '水果資訊';  // 更新 AppBar 標題
+                  _appBarTitle = '水果資訊'; 
                   _currentBody = const FruitInfo();
                 });
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt),  // 水果拍攝的 icon
+              leading: const Icon(Icons.camera_alt), 
               title: const Text('水果拍攝'),
               onTap: () {
                 Navigator.pop(context);
@@ -75,7 +75,7 @@ class _MyAppHomeState extends State<MyAppHome> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.group),  // 食譜社群的 icon
+              leading: const Icon(Icons.group), 
               title: const Text('食譜社群'),
               onTap: () {
                 Navigator.pop(context);
