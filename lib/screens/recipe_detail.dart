@@ -1,77 +1,110 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:typed_data';
 
 class RecipeDetailScreen extends StatelessWidget {
   final int id;
-  final String imagePath;
-  final String recipeName;
+  final String title;
+  final String step;
+  final String ingredient;
+  final String picture;
 
-  RecipeDetailScreen({
+  const RecipeDetailScreen({
     required this.id,
-    required this.imagePath,
-    required this.recipeName,
-  });
+    required this.title,
+    required this.step,
+    required this.ingredient,
+    required this.picture,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    String trimmedPicture = picture.substring(2, picture.length - 1);
+    Uint8List bytes = base64Decode(trimmedPicture);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          recipeName,
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          title,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: Colors.amber[400], // Change the background color as needed
+        backgroundColor: Colors.deepOrange,
       ),
-      body: RecipeDetailContent(id: id, imagePath: imagePath, recipeName: recipeName),
-    );
-  }
-}
-
-class RecipeDetailContent extends StatelessWidget {
-  final int id;
-  final String imagePath;
-  final String recipeName;
-
-  RecipeDetailContent({
-    required this.id,
-    required this.imagePath,
-    required this.recipeName,
-  });
-
-  final Map<int, String> recipeData = {
-    1: '這是有關 美味食譜1 的詳細資訊。',
-    2: '這是有關 美味食譜2 的詳細資訊。',
-    3: '這是有關 美味食譜3 的詳細資訊。',
-    4: '這是有關 美味食譜4 的詳細資訊。',
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final String recipeInfo = recipeData[id] ?? '沒有找到相應的食譜資訊';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          height: 200,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage(imagePath),
-              fit: BoxFit.cover,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 12.0),
+            Container(
+              height: 200,
+              width: double.infinity,
+              padding: const EdgeInsets.all(10.0),
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 10.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    offset: Offset(0, 2),
+                    blurRadius: 6.0,
+                  ),
+                ],
+                image: DecorationImage(
+                  image: MemoryImage(bytes),
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
-          ),
+            const SizedBox(height: 8.0), // Adjust spacing here
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                'Ingredients',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepOrange,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                ingredient,
+                style: const TextStyle(fontSize: 18, color: Colors.black87),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                'Steps',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepOrange,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                step
+                    .split(' ')
+                    .asMap()
+                    .entries
+                    .map((entry) => '${entry.key + 1}. ${entry.value}')
+                    .join('\n'),
+                style: const TextStyle(fontSize: 18, color: Colors.black87),
+              ),
+            ),
+          ],
         ),
-        SizedBox(height: 16),
-        Container(
-          padding: EdgeInsets.all(16),
-          width: double.infinity,
-          color: Colors.white, // Background color for the recipe info
-          child: Text(
-            '食譜資訊：$recipeInfo',
-            style: TextStyle(fontSize: 18, color: Colors.black),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
