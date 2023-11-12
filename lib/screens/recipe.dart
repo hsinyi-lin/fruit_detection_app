@@ -1,5 +1,26 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
 import 'recipe_detail.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Recipe App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: Recipe(),
+    );
+  }
+}
 
 class Recipe extends StatefulWidget {
   const Recipe({Key? key}) : super(key: key);
@@ -9,60 +30,66 @@ class Recipe extends StatefulWidget {
 }
 
 class _RecipeState extends State<Recipe> {
+  Future<List<Map<String, dynamic>>> fetchRecipes() async {
+    final response = await http.get(
+      Uri.parse(''),
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data =
+          json.decode(const Utf8Decoder().convert(response.bodyBytes));
+      final List<dynamic> recipeList = data['data'];
+      return recipeList.map((json) => json as Map<String, dynamic>).toList();
+    } else {
+      throw Exception('Failed to load recipes');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('美味食譜'),
-      ),
-      body: RecipeList(),
-    );
+    return const RecipeList();
   }
 }
 
 class RecipeList extends StatelessWidget {
-  final List<Map<String, dynamic>> recipes = [
-    {
-      'id': 1,
-      'imagePath': 'assets/images/recipe1.jpg',
-      'recipeName': '美味食譜1',
-    },
-    {
-      'id': 2,
-      'imagePath': 'assets/images/recipe2.jpg',
-      'recipeName': '美味食譜2',
-    },
-    {
-      'id': 3,
-      'imagePath': 'assets/images/recipe1.jpg',
-      'recipeName': '美味食譜3',
-    },
-    {
-      'id': 4,
-      'imagePath': 'assets/images/recipe2.jpg',
-      'recipeName': '美味食譜4',
-    },
-    // Add more recipe data as needed
-  ];
+  const RecipeList({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _RecipeState().fetchRecipes(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else {
+          final List<Map<String, dynamic>> recipes = snapshot.data!;
+          return _buildRecipeList(recipes);
+        }
+      },
+    );
+  }
+
+  Widget _buildRecipeList(List<Map<String, dynamic>> recipes) {
     return ListView.builder(
       itemCount: recipes.length,
       itemBuilder: (context, index) {
         final recipe = recipes[index];
         return RecipeCard(
           id: recipe['id']!,
-          imagePath: recipe['imagePath']!,
-          recipeName: recipe['recipeName']!,
+          title: recipe['title']!,
+          picture: recipe['picture'] ?? '',
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => RecipeDetailScreen(
                   id: recipe['id']!,
-                  imagePath: recipe['imagePath']!,
-                  recipeName: recipe['recipeName']!,
+                  title: recipe['title']!,
+                  step: recipe['step']!,
+                  ingredient: recipe['ingredient']!,
+                  picture: recipe['picture'] ?? '',
                 ),
               ),
             );
@@ -75,104 +102,48 @@ class RecipeList extends StatelessWidget {
 
 class RecipeCard extends StatelessWidget {
   final int id;
-  final String imagePath;
-  final String recipeName;
+  final String title;
+  final String picture;
   final VoidCallback onPressed;
 
-  RecipeCard({
+  const RecipeCard({
     required this.id,
-    required this.imagePath,
-    required this.recipeName,
+    required this.title,
+    required this.picture,
     required this.onPressed,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    String trimmedPicture = picture.substring(2, picture.length - 1);
+    Uint8List bytes = base64Decode(trimmedPicture);
+
     return Card(
       elevation: 4.0,
-      margin: EdgeInsets.all(8.0),
+      margin: const EdgeInsets.all(8.0),
       child: InkWell(
         onTap: onPressed,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(
-              imagePath,
-              height: 150,
+            Image.memory(
+              bytes,
+              height: 200,
               width: double.infinity,
               fit: BoxFit.cover,
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                recipeName,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                title,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class RecipeSearch extends SearchDelegate<String> {
-  final List<Map<String, dynamic>> recipes;
-
-  RecipeSearch(this.recipes);
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        icon: Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-        },
-      ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: Icon(Icons.arrow_back),
-      onPressed: () {
-        close(context, '');
-      },
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    // TODO: Implement search results UI
-    return Container();
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    final suggestionList = query.isEmpty
-        ? []
-        : recipes.where((recipe) {
-            return recipe['recipeName']
-                .toLowerCase()
-                .contains(query.toLowerCase());
-          }).toList();
-
-    return ListView.builder(
-      itemCount: suggestionList.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(
-            suggestionList[index]['recipeName'],
-            style: TextStyle(fontSize: 16),
-          ),
-          onTap: () {
-            query = suggestionList[index]['recipeName'];
-            // TODO: Handle tapping on a search suggestion
-          },
-        );
-      },
     );
   }
 }
