@@ -1,26 +1,102 @@
-import 'dart:io';
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 
-class RecipeCommunity extends StatelessWidget {
+import 'add_question.dart';
+
+class Question {
+  final int id;
+  final String title;
+  final String content;
+  final String email;
+
+  Question({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.email,
+  });
+
+  factory Question.fromJson(Map<String, dynamic> json) {
+    return Question(
+      id: json['id'],
+      title: json['title'],
+      content: json['content'],
+      email: json['email'],
+    );
+  }
+}
+
+class RecipeCommunity extends StatefulWidget {
   const RecipeCommunity({Key? key}) : super(key: key);
+
+  @override
+  _RecipeCommunityState createState() => _RecipeCommunityState();
+}
+
+class _RecipeCommunityState extends State<RecipeCommunity> {
+  late Future<List<Question>> _questions;
+
+  @override
+  void initState() {
+    super.initState();
+    _questions = fetchQuestions();
+  }
+
+  Future<List<Question>> fetchQuestions() async {
+    final response =
+        await http.get(Uri.parse(''));
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data =
+          json.decode(const Utf8Decoder().convert(response.bodyBytes));
+      final List<dynamic> questionList = data['data'];
+      return questionList.map((json) => Question.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load questions');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: const Text('這裡顯示食譜社群內容'),
+        child: FutureBuilder<List<Question>>(
+          future: _questions,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else {
+              List<Question> questions = snapshot.data!;
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: questions.length,
+                itemBuilder: (context, index) {
+                  return QuestionItem(
+                    question: questions[index],
+                  );
+                },
+              );
+            }
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // 點擊新增按鈕，導航到新增食譜的頁面
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const AddRecipePage(),
+              builder: (context) => const AddQuestionPage(),
             ),
-          );
+          ).then((value) {
+            if (value == true) {
+              setState(() {
+                _questions = fetchQuestions();
+              });
+            }
+          });
         },
         child: const Icon(Icons.add),
       ),
@@ -28,73 +104,32 @@ class RecipeCommunity extends StatelessWidget {
   }
 }
 
-class AddRecipePage extends StatefulWidget {
-  const AddRecipePage({Key? key}) : super(key: key);
+class QuestionItem extends StatelessWidget {
+  final Question question;
 
-  @override
-  _AddRecipePageState createState() => _AddRecipePageState();
-}
-
-class _AddRecipePageState extends State<AddRecipePage> {
-  late ImagePicker _imagePicker;
-  XFile? _selectedImage;
-
-  @override
-  void initState() {
-    super.initState();
-    _imagePicker = ImagePicker();
-  }
-
-  Future<void> _pickImage() async {
-    final XFile? selectedImage = await _imagePicker.pickImage(source: ImageSource.gallery);
-    if (selectedImage != null) {
-      setState(() {
-        _selectedImage = selectedImage;
-      });
-    }
-  }
+  const QuestionItem({
+    Key? key,
+    required this.question,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('新增食譜'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextFormField(
-              decoration: const InputDecoration(labelText: '食譜標題'),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              maxLines: 5,
-              decoration: const InputDecoration(labelText: '食譜內容'),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _pickImage,
-              child: const Text('上傳圖片'),
-            ),
-            const SizedBox(height: 16),
-            if (_selectedImage != null)
-              Image.file(
-                File(_selectedImage!.path),
-                height: 100,
-              ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // TODO: 處理儲存食譜的操作
-                print('儲存食譜');
-                Navigator.pop(context); // 返回前一個頁面
-              },
-              child: const Text('儲存食譜'),
-            ),
-          ],
+    return Card(
+      elevation: 4.0,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ListTile(
+        title: Text(
+          question.title,
+          style: const TextStyle(
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
         ),
+        subtitle: Text(question.content),
+        onTap: () {
+          
+        },
       ),
     );
   }
