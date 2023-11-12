@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'add_question.dart';
+import 'question_detail.dart';
 
 class Question {
   final int id;
@@ -128,7 +129,12 @@ class QuestionItem extends StatelessWidget {
         ),
         subtitle: Text(question.content),
         onTap: () {
-          
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => QuestionDetailPage(questionId: question.id),
+            ),
+          );
         },
       ),
     );
