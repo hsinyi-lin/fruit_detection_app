@@ -5,8 +5,7 @@ import 'package:http/http.dart' as http;
 class QuestionDetailPage extends StatefulWidget {
   final int questionId;
 
-  const QuestionDetailPage({Key? key, required this.questionId})
-      : super(key: key);
+  const QuestionDetailPage({Key? key, required this.questionId}): super(key: key);
 
   @override
   _QuestionDetailPageState createState() => _QuestionDetailPageState();
@@ -22,23 +21,104 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   Future<Map<String, dynamic>> fetchQuestionDetail(int questionId) async {
-    final response = await http
-        .get(Uri.parse(''));
+    final response = await http.get(Uri.parse(''));
 
     if (response.statusCode == 200) {
-      final Map<String, dynamic> data =
-          json.decode(const Utf8Decoder().convert(response.bodyBytes));
+      final Map<String, dynamic> data = json.decode(const Utf8Decoder().convert(response.bodyBytes));
       return data['data'];
     } else {
       throw Exception('Failed to load question details');
     }
   }
 
+  Future<void> _postAnswer(String enteredAnswer) async {
+    const String apiUrl = '';
+
+    final Map<String, dynamic> data = {
+      'question_id': widget.questionId,
+      'content': enteredAnswer,
+    };
+
+    const String token = ''; 
+    final Map<String, String> headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+
+    try {
+      final http.Response response = await http.post(
+        Uri.parse(apiUrl),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode == 200) {
+        // Handle success response
+        print('Answer posted successfully');
+
+        setState(() {
+          _questionDetail = fetchQuestionDetail(widget.questionId);
+        });
+      } else {
+        // Handle error response
+        print('Failed to post answer: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error: $error');
+    }
+  }
+
+  void _showInputDialog() {
+    String enteredAnswer = ''; // 變數用於儲存輸入的答案
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('新增回答'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: TextField(
+              decoration: const InputDecoration(
+                hintText: '輸入你的答覆',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+              onChanged: (value) {
+                enteredAnswer = value; // 更新輸入的答案
+              },
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                // 在這裡處理輸入的答案
+                print('輸入的答案是：$enteredAnswer');
+                _postAnswer(enteredAnswer);
+
+                // setState(() {
+                //   _questionDetail = fetchQuestionDetail(widget.questionId);
+                // });
+                Navigator.of(context).pop();
+              },
+              child: const Text('送出'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('取消'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Question Detail'),
+        title: const Text('內容'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -101,6 +181,10 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                         ),
                       ),
                     ),
+                  ElevatedButton(
+                    onPressed: _showInputDialog,
+                    child: const Text('新增回答'),
+                  ),
                 ],
               );
             }
