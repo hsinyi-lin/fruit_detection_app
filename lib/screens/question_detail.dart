@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class QuestionDetailPage extends StatefulWidget {
   final int questionId;
@@ -13,11 +15,29 @@ class QuestionDetailPage extends StatefulWidget {
 
 class _QuestionDetailPageState extends State<QuestionDetailPage> {
   late Future<Map<String, dynamic>> _questionDetail;
+  late bool isLoggedIn;
 
   @override
   void initState() {
     super.initState();
+    checkLoginStatus();
     _questionDetail = fetchQuestionDetail(widget.questionId);
+  }
+
+  Future<void> checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token'); 
+
+    // 確認 token 存在
+    if (token != null && token.isNotEmpty) {
+      setState(() {
+        isLoggedIn = true;
+      });
+    } else {
+      setState(() {
+        isLoggedIn = false;
+      });
+    }
   }
 
   Future<Map<String, dynamic>> fetchQuestionDetail(int questionId) async {
@@ -69,6 +89,14 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   void _showInputDialog() {
+    if (!isLoggedIn) {
+      // 若使用者未登入，顯示警示訊息
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('請先登入才能新增回答')),
+      );
+      // 也可在這裡導向登入頁面或執行其他登入流程
+      return;
+    }
     String enteredAnswer = ''; // 變數用於儲存輸入的答案
     showDialog(
       context: context,
@@ -181,6 +209,8 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                         ),
                       ),
                     ),
+
+                  
                   ElevatedButton(
                     onPressed: _showInputDialog,
                     child: const Text('新增回答'),
