@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:http/http.dart' as http;
+
+import 'dart:convert';
+
+import 'analysis_result.dart';
 
 class FruitCapture extends StatefulWidget {
   const FruitCapture({Key? key}) : super(key: key);
@@ -10,70 +15,103 @@ class FruitCapture extends StatefulWidget {
 
 class _FruitCaptureState extends State<FruitCapture> {
   late CameraController _controller;
-  late Future<void> _initializeControllerFuture;
+  late Future<void> _initializeControllerFuture = Future<void>.value();
 
   @override
   void initState() {
     super.initState();
+    _initializeCamera();
+  }
 
-    // 獲取可用的相機
-    availableCameras().then((cameras) {
-      // 如果相機列表為空，不進行初始化
+  Future<void> _sendBase64ImageToBackend(String base64Image, Function(dynamic) navigateToResult) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://192.168.56.1:8000/fruit_detection/'),
+        body: jsonEncode({'photo': base64Image}),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData =
+            json.decode(const Utf8Decoder().convert(response.bodyBytes));
+
+        navigateToResult(responseData);
+      } else {
+        print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error occurred: $e');
+    }
+  }
+
+  Future<void> _initializeCamera() async {
+    try {
+      final cameras = await availableCameras();
       if (cameras.isEmpty) return;
 
-      // 選擇第一個相機
       _controller = CameraController(cameras[0], ResolutionPreset.medium);
-
-      // 初始化相機控制器
       _initializeControllerFuture = _controller.initialize();
-    });
+      if (mounted) {
+        setState(() {}); // Trigger a rebuild once the controller is initialized
+      }
+    } catch (e) {
+      print('Error initializing camera: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('水果拍攝'),
-      ),
-      body: FutureBuilder<void>(
-        future: _initializeControllerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // 如果初始化完成，顯示相機預覽
-            return CameraPreview(_controller);
-          } else if (snapshot.hasError) {
-            // 如果初始化出現錯誤，顯示錯誤信息
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
-          } else {
-            // 如果尚未完成，顯示加載中的提示
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          try {
-            // 拍攝照片
-            final XFile file = await _controller.takePicture();
+    if (_initializeControllerFuture == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-            // TODO: 處理拍攝的照片，例如顯示、上傳等
+    return FutureBuilder<void>(
+      future: _initializeControllerFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return Scaffold(
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
+            floatingActionButton: FloatingActionButton(
+              onPressed: () async {
+                try {
+                  final XFile file = await _controller.takePicture();
+                  final bytes = await file.readAsBytes();
 
-            print('照片已拍攝：${file.path}');
-          } catch (e) {
-            print('錯誤發生：$e');
-          }
-        },
-        child: const Icon(Icons.camera),
-      ),
+                  // Convert bytes to base64
+                  String base64Image = base64Encode(bytes);
+                  await _sendBase64ImageToBackend(base64Image, (responseData) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AnalysisResultPage(analysisResult: responseData),
+                      ),
+                    );
+                  });
+                } catch (e) {
+                  print('Error occurred: $e');
+                }
+              },
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+              child: Icon(Icons.camera),
+            ),
+            body: Container(
+              width: double.infinity,
+              height: double.infinity,
+              child: CameraPreview(_controller),
+            ),
+          );
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
+      },
     );
-  }
-
-  @override
-  void dispose() {
-    // 釋放相機資源
-    _controller.dispose();
-    super.dispose();
   }
 }
