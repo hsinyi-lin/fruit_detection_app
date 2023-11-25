@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'add_question.dart';
 import 'question_detail.dart';
@@ -37,11 +38,28 @@ class RecipeCommunity extends StatefulWidget {
 
 class _RecipeCommunityState extends State<RecipeCommunity> {
   late Future<List<Question>> _questions;
+  late bool isLoggedIn;
 
   @override
   void initState() {
     super.initState();
+    checkLoginStatus();
     _questions = fetchQuestions();
+  }
+
+  Future<void> checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token'); 
+
+    if (token != null && token.isNotEmpty) {
+      setState(() {
+        isLoggedIn = true;
+      });
+    } else {
+      setState(() {
+        isLoggedIn = false;
+      });
+    }
   }
 
   Future<List<Question>> fetchQuestions() async {
@@ -86,19 +104,27 @@ class _RecipeCommunityState extends State<RecipeCommunity> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddQuestionPage(),
-            ),
-          ).then((value) {
-            if (value == true) {
-              setState(() {
-                _questions = fetchQuestions();
-              });
-            }
-          });
+          if (isLoggedIn) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AddQuestionPage(),
+              ),
+            ).then((value) {
+              if (value == true) {
+                setState(() {
+                  _questions = fetchQuestions();
+                });
+              }
+            });
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('請先登入才能使用新增功能')),
+            );
+          }
         },
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
     );
