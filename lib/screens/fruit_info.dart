@@ -85,7 +85,7 @@ class FruitInfoItem extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
         leading: Icon(
-          Icons.local_florist, // Assuming a default icon for now
+          Icons.star, // Assuming a default icon for now
           size: 36.0,
           color: Colors.orange,
         ),
