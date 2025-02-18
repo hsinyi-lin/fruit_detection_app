@@ -12,3 +12,6 @@
 - 🌍 **Recipe Community** – Share and explore fruit-based recipes with other users.
 - 🔗 **Django API Integration** – The app communicates with a **Django REST Framework API** for data retrieval and processing.
 - 🧠 **AI-powered Recognition** – Uses **Teachable Machine** to analyze fruit images and suggest recipes.
+
+## 🔗 Backend
+[View Backend](https://github.com/hsinyi-lin/fruit_detection_api.git)
