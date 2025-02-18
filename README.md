@@ -1,16 +1,14 @@
-# fruit_app
+# 🍎 Fruit Detection App
 
-A new Flutter project.
+## 📌 Overview
 
-## Getting Started
+**Fruit Detection App** is a mobile application that helps users identify fruits through image recognition and provides related recipes. It also includes a community feature for sharing and discussing fruit-based recipes. The app is built using **Dart + Flutter** for the frontend and **Django (Django REST Framework)** for the backend. The fruit detection system is integrated with **Teachable Machine** to enhance recognition accuracy.
 
-This project is a starting point for a Flutter application.
+## ✨ Features
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- 📸 **Fruit Detection** – Identify fruits using a camera and get related recipes.
+- 🍽️ **Fruit Recipes Search** – Browse a variety of fruit-based recipes.
+- ❓ **Query Platform** – Ask questions about fruits, recipes, and nutritional benefits.
+- 🌍 **Recipe Community** – Share and explore fruit-based recipes with other users.
+- 🔗 **Django API Integration** – The app communicates with a **Django REST Framework API** for data retrieval and processing.
+- 🧠 **AI-powered Recognition** – Uses **Teachable Machine** to analyze fruit images and suggest recipes.
